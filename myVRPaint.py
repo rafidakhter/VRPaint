@@ -2,28 +2,30 @@ import cv2
 import numpy as np
 import time
 
+
 def paintOnAir(cords):
     for cord in cords:
-        cv2.circle(imgOutput,(cord[0],cord[1]),10,(0,255,0),cv2.FILLED)
+        cv2.circle(imgOutput, (cord[0], cord[1]), 10, (0, 255, 0), cv2.FILLED)
+
 
 def contourLocation(maskedImg):
     # function returns the coordinates of the green object
 
-    cx, cy = 0, 0  #if not contours found then return 0
+    cx, cy = 0, 0  # if not contours found then return 0
     contours, hierarchy = cv2.findContours(maskedImg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     for cnt in contours:
-        area=cv2.contourArea(cnt)
+        area = cv2.contourArea(cnt)
         if area >= 1000:
-
             peri = cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
             x, y, w, h = cv2.boundingRect(approx)
 
-            cx = (x + (w//2))
-            cy = (y + (h//2))
+            cx = (x + (w // 2))
+            cy = (y + (h // 2))
 
     return cx, cy
+
 
 def maskImg(img):
     # takes the image and converts it to an HSV format
@@ -51,26 +53,25 @@ def createVideoObject():
 
 
 video = createVideoObject()
-cords=[]
-sec=0
+cords = []
+sec = 0
 while True:
     sucess, img = video.read()
-    img=cv2.flip(img,1)
+    img = cv2.flip(img, 1)
     imgOutput = img.copy()
     maskedImg = maskImg(img)
-    cx,cy= contourLocation(maskedImg)
-    if cx!=0 and cy!=0:
-        cords.append([cx,cy])
+    cx, cy = contourLocation(maskedImg)
+    if cx != 0 and cy != 0:
+        cords.append([cx, cy])
     paintOnAir(cords)
     print(sec)
-    if sec%10==0:
-        if cords==[]:
+    if sec % 10 == 0:
+        if not cords:
             pass
         else:
             cords.pop(0)
-    sec+=1
+    sec += 1
 
-
-    cv2.imshow("Pint",imgOutput)
+    cv2.imshow("Pint", imgOutput)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
